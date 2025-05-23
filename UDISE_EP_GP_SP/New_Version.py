@@ -1,32 +1,46 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select, WebDriverWait
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import ElementNotInteractableException
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import random
 
+CLASS1_HEIGHT_UPPER = 145
+CLASS1_HEIGHT_LOWER = 150
+CLASS1_WEIGHT_UPPER = 45       
+CLASS1_WEIGHT_LOWER = 50
+
 def generate_random_integer(start, end):
     return str(random.randint(start, end))
 
-# Chrome Options
 options = Options()
 options.add_experimental_option("detach", True)
 
-# Initialize WebDriver
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
 driver.get("https://sdms.udiseplus.gov.in/p0/v1/login?state-id=110")
 driver.maximize_window()
 
-# Login
-driver.find_element(By.CLASS_NAME, "form-control").send_keys("BR71392670")
-driver.find_element(By.ID, "password-field").send_keys("ODdgp53#")
+input_element = driver.find_element(By.CLASS_NAME, "form-control")
+input_element.send_keys("BR71392670")
+
+input_element = driver.find_element(By.ID, "password-field")
+input_element.send_keys("ODdgp53#")
+
 time.sleep(10)
 
-WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.ID, "submit-btn"))).click()
+login_button = WebDriverWait(driver, 15).until(
+    EC.presence_of_element_located((By.ID, "submit-btn"))
+)
+login_button.click()
+
 time.sleep(25)
 
 while True:
@@ -42,8 +56,7 @@ while True:
         EC.presence_of_element_located((By.XPATH, '/html/body/app-root/app-admin-dashboard/div[2]/div[2]/main/div/div/div/app-edit-student-new-ac/div/div/div/div/div[2]/div/mat-stepper/div/div[2]/div[1]/div/form/div/app-general-info-edit-new-ac/div[1]/div/div/div/div/form/div[1]/div[2]/div/div[3]/div/input'))
     )
     input_box.clear()
-    input_box.send_keys(random_10_digit)    
-    10140806705
+    input_box.send_keys(random_10_digit)
 
     time.sleep(1)
 
@@ -73,11 +86,20 @@ while True:
     ).click()
     time.sleep(2)
 
-    # Select Language Group
-    Select(WebDriverWait(driver, 10).until(
+    # Wait for the dropdown to be present
+    dropdown_element = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, "//select[@formcontrolname='languageGroup']"))
-    )).select_by_value("1002")
+    )
+    # Create a Select object
+    select = Select(dropdown_element)
 
+    # Check if option with value "1002" exists
+    option_values = [option.get_attribute("value") for option in select.options]
+
+    if "1002" in option_values:
+        select.select_by_value("1002")
+    else:
+        select.select_by_value("1005")
     time.sleep(1)
 
     # Enter Admission Date
